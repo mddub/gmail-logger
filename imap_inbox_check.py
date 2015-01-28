@@ -1,5 +1,4 @@
-"""Count the number of unique message threads in a Gmail inbox, by logging
-in with IMAP and checking the count of unique values of the X-GM-THRID header.
+"""Get metadata about messages in a Gmail inbox, grouped by thread.
 
 This example was helpful:
 http://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
