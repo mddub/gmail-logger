@@ -18,7 +18,7 @@ thread_id_re = re.compile('X-GM-THRID (\d+)')
 date_parser = parser()
 header_parser = HeaderParser()
 
-def thread_info_from_message_tuple(unread_indices, m):
+def message_info_from_tuple(unread_indices, m):
     parsed = dict(header_parser.parsestr(m[1]).items())
     return {
         'thread_id': thread_id_re.search(m[0]).group(1),
@@ -27,6 +27,9 @@ def thread_info_from_message_tuple(unread_indices, m):
         'subject': parsed['Subject'],
         'from': parsed['From'],
     }
+
+def parse_date_from_message_dict(info):
+    return date_parser.parse(info['date'])
 
 def gmail_thread_info(email, password):
     mail = imaplib.IMAP4_SSL('imap.gmail.com')
@@ -44,32 +47,26 @@ def gmail_thread_info(email, password):
 
     # every other "message" is the string ")"
     actual_messages = [inbox[i] for i in xrange(0, len(inbox), 2)]
-    thread_infos = map(partial(thread_info_from_message_tuple, unread_indices), actual_messages)
+    thread_infos = map(partial(message_info_from_tuple, unread_indices), actual_messages)
 
     # Group messages into Gmail threads
     thread_id_to_messages = defaultdict(list)
     for m in thread_infos:
         thread_id_to_messages[m['thread_id']].append(m)
 
-    # Pick the one whose subject doesn't start with "Re:"
-    thread_id_to_single_message = {}
+    # Summarize each thread
+    summarized_threads = []
     for thread_id, messages in thread_id_to_messages.iteritems():
-        if len(messages) == 1:
-            thread_id_to_single_message[thread_id] = messages[0]
-        else:
-            subjects_without_reply = [m for m in messages if not m['Subject'].startswith('Re: ')]
-            if subjects_without_reply:
-                thread_id_to_single_message[thread_id] = subjects_without_reply[0]
-            else:
-                thread_id_to_single_message[thread_id] = messages[0]
-
-    out = []
+        sorted_by_date = list(sorted(messages, key=parse_date_from_message_dict))
+        summarized_threads.append({
+            # Take subject from the earliest message, which is least likely to have "Re:" in it
+            'subject': sorted_by_date[0]['subject'],
+            # Take date from the latest message
+            'date': sorted_by_date[-1]['date'],
+            'from': list(set(m['from'] for m in sorted_by_date)),
+            'unread': any(m['unread'] for m in sorted_by_date),
+            'thread_id': thread_id,
+        })
 
     # Sort by timestamp
-    out = list(sorted(
-        thread_id_to_single_message.itervalues(),
-        key=lambda m: date_parser.parse(m['date']),
-        reverse=True
-    ))
-
-    return out
+    return list(sorted(summarized_threads, key=parse_date_from_message_dict, reverse=True))
