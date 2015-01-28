@@ -11,7 +11,6 @@ from collections import defaultdict
 from dateutil.parser import parser
 from email.parser import HeaderParser
 from functools import partial
-from operator import itemgetter
 
 message_index_re = re.compile('^(\d+) \(')
 thread_id_re = re.compile('X-GM-THRID (\d+)')
@@ -25,13 +24,9 @@ def thread_info_from_message_tuple(unread_indices, m):
         'thread_id': thread_id_re.search(m[0]).group(1),
         'unread': message_index_re.search(m[0]).group(1) in unread_indices,
         'date': parsed['Date'],
-        'date_ts': date_str_to_timestamp(parsed['Date']),
         'subject': parsed['Subject'],
         'from': parsed['From'],
     }
-
-def date_str_to_timestamp(date_str):
-    return int(date_parser.parse(date_str).strftime('%s'))
 
 def gmail_thread_info(email, password):
     mail = imaplib.IMAP4_SSL('imap.gmail.com')
@@ -71,6 +66,10 @@ def gmail_thread_info(email, password):
     out = []
 
     # Sort by timestamp
-    out = list(sorted(thread_id_to_single_message.itervalues(), key=itemgetter('date_ts'), reverse=True))
+    out = list(sorted(
+        thread_id_to_single_message.itervalues(),
+        key=lambda m: date_parser.parse(m['date']),
+        reverse=True
+    ))
 
     return out
