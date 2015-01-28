@@ -10,21 +10,20 @@ import re
 from collections import defaultdict
 from dateutil.parser import parser
 from email.parser import HeaderParser
+from functools import partial
 from operator import itemgetter
 
+message_index_re = re.compile('^(\d+) \(')
 thread_id_re = re.compile('X-GM-THRID (\d+)')
 
 date_parser = parser()
 header_parser = HeaderParser()
 
-def thread_id_from_message_tuple(m):
-    result = thread_id_re.search(m[0])
-    return result.group(1) if result else None
-
-def thread_info_from_message_tuple(m):
+def thread_info_from_message_tuple(unread_indices, m):
     parsed = dict(header_parser.parsestr(m[1]).items())
     return {
-        'thread_id': thread_id_from_message_tuple(m),
+        'thread_id': thread_id_re.search(m[0]).group(1),
+        'unread': message_index_re.search(m[0]).group(1) in unread_indices,
         'date': parsed['Date'],
         'date_ts': date_str_to_timestamp(parsed['Date']),
         'subject': parsed['Subject'],
@@ -45,9 +44,12 @@ def gmail_thread_info(email, password):
 
     _, inbox = mail.uid('fetch', ','.join(uids), '(X-GM-THRID BODY.PEEK[HEADER])')
 
+    _, (unread_indices,) = mail.search(None, '(UNSEEN)')
+    unread_indices = unread_indices.split(' ')
+
     # every other "message" is the string ")"
     actual_messages = [inbox[i] for i in xrange(0, len(inbox), 2)]
-    thread_infos = map(thread_info_from_message_tuple, actual_messages)
+    thread_infos = map(partial(thread_info_from_message_tuple, unread_indices), actual_messages)
 
     # Group messages into Gmail threads
     thread_id_to_messages = defaultdict(list)
