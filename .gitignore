@@ -3,3 +3,4 @@
 secret.py
 inbox_count.log
 *.json
+venv
