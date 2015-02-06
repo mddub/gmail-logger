@@ -37,8 +37,11 @@ def gmail_thread_info(email, password):
     mail.select('INBOX')
 
     _, (uid_list,) = mail.uid('search', None, 'ALL')
-    uids = uid_list.split(' ')
 
+    if uid_list == '':
+        return []
+
+    uids = uid_list.split(' ')
     _, inbox = mail.uid('fetch', ','.join(uids), '(X-GM-THRID BODY.PEEK[HEADER])')
 
     _, (unread_indices,) = mail.search(None, '(UNSEEN)')
