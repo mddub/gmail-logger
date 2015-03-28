@@ -23,7 +23,7 @@ def message_info_from_tuple(unread_indices, m):
         'thread_id': thread_id_re.search(m[0]).group(1),
         'unread': message_index_re.search(m[0]).group(1) in unread_indices,
         'date': parsed['Date'],
-        'subject': parsed['Subject'],
+        'subject': parsed.get('Subject', ''),
         'from': parsed['From'],
     }
 
