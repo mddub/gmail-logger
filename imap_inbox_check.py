@@ -28,7 +28,9 @@ def message_info_from_tuple(unread_indices, m):
     }
 
 def parse_date_from_message_dict(info):
-    return date_parser.parse(info['date'])
+    return date_parser.parse(
+        info['date'].replace('(GMT+00:00)', '(GMT)')
+    )
 
 def gmail_thread_info(email, password):
     mail = imaplib.IMAP4_SSL('imap.gmail.com')
