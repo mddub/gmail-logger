@@ -8,6 +8,7 @@ import imaplib
 import re
 from collections import defaultdict
 from dateutil.parser import parser
+from dateutil.tz import tzlocal
 from email.parser import HeaderParser
 from functools import partial
 
@@ -28,9 +29,21 @@ def message_info_from_tuple(unread_indices, m):
     }
 
 def parse_date_from_message_dict(info):
-    return date_parser.parse(
-        info['date'].replace('(GMT+00:00)', '(GMT)')
-    )
+    date = info['date']
+
+    # dateutil doesn't understand these...
+    unfortunate_tz_strings = [('EST', '-0500'), ('EDT', '-0400'), ('(GMT+00:00)', '(GMT)')]
+    for tz_str, offset in unfortunate_tz_strings:
+        date = date.replace(tz_str, offset)
+    parsed = date_parser.parse(date)
+
+    # Parsed dates are used for sorting, but not in the output,
+    # so we can afford to be lenient with bad timezones.
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=tzlocal())
+
+    return parsed
+
 
 def gmail_thread_info(email, password):
     mail = imaplib.IMAP4_SSL('imap.gmail.com')
