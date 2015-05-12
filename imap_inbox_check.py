@@ -31,11 +31,14 @@ def message_info_from_tuple(unread_indices, m):
 def parse_date_from_message_dict(info):
     date = info['date']
 
-    # dateutil doesn't understand these...
-    unfortunate_tz_strings = [('EST', '-0500'), ('EDT', '-0400'), ('(GMT+00:00)', '(GMT)')]
-    for tz_str, offset in unfortunate_tz_strings:
-        date = date.replace(tz_str, offset)
     parsed = date_parser.parse(date)
+
+    if parsed.tzinfo is None:
+        # dateutil doesn't understand these...
+        unfortunate_tz_strings = [('EST', '-0500'), ('EDT', '-0400'), ('(GMT+00:00)', '(GMT)')]
+        for tz_str, offset in unfortunate_tz_strings:
+            date = date.replace(tz_str, offset)
+        parsed = date_parser.parse(date)
 
     # Parsed dates are used for sorting, but not in the output,
     # so we can afford to be lenient with bad timezones.
