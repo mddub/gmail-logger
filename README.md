@@ -2,32 +2,36 @@
 
 Log metadata about your Gmail inbox.
 
+## Motivation
+
+I wrote a blog post, [Three Years of Logging My Inbox Count][blog-post], in which I explore what this data says about my email habits. You can use my [gmail-graphs] code to generate the same graphs from your own data.
+
 ## Quick start
 
 * Add a file called `secret.py` which looks like this. If your Google account has 2-step verification, create a new app-specific password for this.
-```
-email = 'your-email@gmail.com'
-password = 'your-password'
-```
+  ```
+  email = 'your-email@gmail.com'
+  password = 'your-password'
+  ```
 
 * Make sure you have pip and virtualenv.
 
 * Set up a virtualenv, activate it, and install requirements:
-```
-virtualenv venv
-. venv/bin/activate
-pip install -r requirements.txt
-```
+  ```
+  virtualenv venv
+  . venv/bin/activate
+  pip install -r requirements.txt
+  ```
 
 * Test it out:
-```
-python log_inbox.py
-```
+  ```
+  python log_inbox.py
+  ```
 
 * Schedule it to run regularly. This is the line from my `crontab` which schedules it at the top of every hour:
-```
-0 * * * * cd /path/to/log/to; /path/to/gmail-logger/venv/bin/python /path/to/gmail-logger/log_inbox.py >/dev/null
-```
+  ```
+  0 * * * * cd /path/to/log/to; /path/to/gmail-logger/venv/bin/python /path/to/gmail-logger/log_inbox.py >/dev/null
+  ```
 
 ## Output
 
@@ -58,6 +62,9 @@ If you were to run it hourly, `inbox_count.log` would look something like this:
 
 ## Notes
 
-I wrote this hastily, for my personal needs, and with the goal of logging as much data as reasonably possible. Eventually I'll update it to log in a saner format and offer options for what gets logged.
+I wrote this hastily, for my personal needs, and with the goal of logging as much data as reasonably possible. ~~Eventually I'll update it to log in a saner format and offer options for what gets logged.~~ It's not the best format, but it's unlikely to change, since [gmail-graphs] expects this format to compute summary data and generate graphs.
 
 Add to my inbox count: mark@warkmilson.com
+
+[blog-post]: http://warkmilson.com/2015/05/15/three-years-of-logging-my-inbox-count.html
+[gmail-graphs]: https://github.com/mddub/gmail-graphs
