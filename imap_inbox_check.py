@@ -25,7 +25,7 @@ def message_info_from_tuple(unread_indices, m):
         'unread': message_index_re.search(m[0]).group(1) in unread_indices,
         'date': parsed['Date'],
         'subject': parsed.get('Subject', ''),
-        'from': parsed['From'],
+        'from': parsed.get('From', ''),
     }
 
 def parse_date_from_message_dict(info):
