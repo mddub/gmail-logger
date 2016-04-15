@@ -31,7 +31,11 @@ def message_info_from_tuple(unread_indices, m):
 def parse_date_from_message_dict(info):
     date = info['date']
 
-    parsed = date_parser.parse(date)
+    try:
+        parsed = date_parser.parse(date)
+    except ValueError:
+        # e.g. "Fri, 15 Apr 2016 02:45:07 -0700 (GMT-07:00)"
+        parsed = date_parser.parse(re.sub('\([^)]+\)', '', date))
 
     if parsed.tzinfo is None:
         # dateutil doesn't understand these...
