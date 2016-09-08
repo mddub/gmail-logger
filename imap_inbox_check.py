@@ -19,13 +19,15 @@ date_parser = parser()
 header_parser = HeaderParser()
 
 def message_info_from_tuple(unread_indices, m):
-    parsed = dict(header_parser.parsestr(m[1]).items())
+    parsed_headers = header_parser.parsestr(m[1])
+    parsed_lowercase_headers = { k.lower() : parsed_headers[k] for k in parsed_headers.keys() }
+
     return {
         'thread_id': thread_id_re.search(m[0]).group(1),
         'unread': message_index_re.search(m[0]).group(1) in unread_indices,
-        'date': parsed['Date'],
-        'subject': parsed.get('Subject', ''),
-        'from': parsed.get('From', ''),
+        'date': parsed_lowercase_headers['date'],
+        'subject': parsed_lowercase_headers.get('subject', ''),
+        'from': parsed_lowercase_headers.get('from', '')
     }
 
 def parse_date_from_message_dict(info):
